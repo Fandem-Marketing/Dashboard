@@ -16,11 +16,22 @@ $(document).ready(function () {
 });
 
 getData = async function () {
+
+     //Get token price on PancakeSwap v2 BSC
+     const options = {
+        address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+        chain: "eth",
+        exchange: "uniswap-v3",
+    };
+    let price = await Moralis.Web3API.token.getTokenPrice(options);
+    price = price.usdPrice;
+
     const address = document.getElementById('address').value;
     document.getElementById('totalLiquidity').innerHTML = "Working . . .";
 
     let cursor = null;
     let owners = [];
+    let addresses = [];
     do {
     const response = await Moralis.Web3API.token.getNFTOwners({
         address: address,
@@ -34,12 +45,15 @@ getData = async function () {
         )}, ${response.total} total`
     );
     for (const owner of response.result) {
-        owners.push({
-        amount: owner.amount,
-        owner: owner.owner_of,
-        tokenId: owner.token_id,
-        tokenAddress: owner.token_address,
-        });
+        if(!addresses.includes(owner.owner_of)){
+            addresses.push(owner.owner_of);
+            owners.push({
+            amount: owner.amount,
+            owner: owner.owner_of,
+            tokenId: owner.token_id,
+            tokenAddress: owner.token_address,
+            });
+        }
     }
     cursor = response.cursor;
     } while (cursor != "" && cursor != null);
@@ -55,8 +69,12 @@ getData = async function () {
         };
         const balance = await Moralis.Web3API.account.getNativeBalance(options);
         totalLiquidity += parseFloat(balance.balance);
+        let totalLiq = (totalLiquidity / 10**18).toFixed(2);
+        document.getElementById('totalLiquidity').innerHTML = "Total Holder Liquidity: " + totalLiq + " ETH | " + "$" + (price * totalLiq).toFixed(2);
         ol.push({address: owners[i], ethBalance: (parseFloat(balance.balance) / 10**18).toFixed(2)});
     }
+
+   
 
     let sorted = [];
     sorted = ol.sort(function(a,b,){return a.ethBalance - b.ethBalance});
@@ -66,7 +84,7 @@ getData = async function () {
     console.log((totalLiquidity / 10**18).toFixed(2));
     let totalLiq = (totalLiquidity / 10**18).toFixed(2);
 
-    document.getElementById('totalLiquidity').innerHTML = "Total Holder Liquidity: " + totalLiq + " ETH";
+    document.getElementById('totalLiquidity').innerHTML = "Holders: " + sorted.length + " | Total Holder Liquidity: " + totalLiq + " ETH | " + "$" + (price * totalLiq).toFixed(2);
     document.getElementById('highestLiquidity').innerHTML = "Highest Holder Liquidity: " + sorted[0].address.owner + " " + sorted[0].ethBalance + " ETH";
 
     return ol;

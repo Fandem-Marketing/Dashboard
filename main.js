@@ -10,10 +10,8 @@ var user;
 
 
 $(document).ready(function () {
-    window.ethereum.enable().then(function(accounts) {
       
         $("#search").click(getData);
-    });
 });
 
 getCachedData = async function () {

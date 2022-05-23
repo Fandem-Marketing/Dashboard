@@ -98,17 +98,25 @@ getData = async function () {
         address: address,
     };
 
-    const op = {
-        address: address,
-        chain: "eth",
-      };
-    const metaData = await Moralis.Web3API.token.getNFTMetadata(op);
-    console.log(metaData);
-    document.getElementById('name').innerHTML = "Name: " + metaData.name;
-
-    const NFTLowestPrice = await Moralis.Web3API.token.getNFTLowestPrice(opt);
-    let lowestPrice = (parseFloat(NFTLowestPrice.price) / 10**18).toFixed(2);
-    document.getElementById('lowestPrice').innerHTML = "Lowest Price: " + lowestPrice + " ETH";
+    try{
+        const op = {
+            address: address,
+            chain: "eth",
+          };
+        const metaData = await Moralis.Web3API.token.getNFTMetadata(op);
+        console.log(metaData);
+        document.getElementById('name').innerHTML = "Name: " + metaData.name;
+    } catch {
+        document.getElementById('name').innerHTML = "Metadata not available";
+    }
+    
+    try {
+        const NFTLowestPrice = await Moralis.Web3API.token.getNFTLowestPrice(opt);
+        let lowestPrice = (parseFloat(NFTLowestPrice.price) / 10**18).toFixed(2);
+        document.getElementById('lowestPrice').innerHTML = "Lowest Price: " + lowestPrice + " ETH";
+    } catch {
+        document.getElementById('lowestPrice').innerHTML = "Lowest Price: No listings";
+    }
 
     document.getElementById('totalLiquidity').innerHTML = "Working . . .";
 

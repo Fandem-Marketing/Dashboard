@@ -76,9 +76,10 @@ getCachedData = async function () {
             };
             const balance = await Moralis.Web3API.account.getNativeBalance(options);
             totalLiquidity += parseFloat(balance.balance);
+            let deeperData = await dig(owners[i].owner);
             let totalLiq = (totalLiquidity / 10**18).toFixed(2);
             //document.getElementById('totalLiquidity').innerHTML = "Total Holder Liquidity: " + totalLiq + " ETH | " + "$" + (price * totalLiq).toFixed(2);
-            ol.push({address: owners[i], ethBalance: (parseFloat(balance.balance) / 10**18).toFixed(2)});
+            ol.push({address: owners[i], ethBalance: (parseFloat(balance.balance) / 10**18).toFixed(2), DeeperData: deeperData});
         }
     }
 }
@@ -96,6 +97,7 @@ getData = async function () {
     const address = document.getElementById('address').value;
     const opt = {
         address: address,
+        days: "1"
     };
 
     try{
@@ -239,10 +241,11 @@ getData = async function () {
             address: owners[i].owner
             };
             const balance = await Moralis.Web3API.account.getNativeBalance(options);
+            let deeperData = await dig(owners[i].owner);
             totalLiquidity += parseFloat(balance.balance);
             let totalLiq = (totalLiquidity / 10**18).toFixed(2);
             //document.getElementById('totalLiquidity').innerHTML = "Total Holder Liquidity: " + totalLiq + " ETH | " + "$" + (price * totalLiq).toFixed(2);
-            ol.push({address: owners[i], ethBalance: (parseFloat(balance.balance) / 10**18).toFixed(2)});
+            ol.push({address: owners[i], ethBalance: (parseFloat(balance.balance) / 10**18).toFixed(2), DeeperData: deeperData});
         }
 
     const Project = Moralis.Object.extend('Blockchain_Cache');
@@ -277,5 +280,16 @@ getData = async function () {
 dig = async function (address) {
     const addr = address.toLowerCase();
 
+    const options = {
+        chain: "eth",
+        address: addr,
+      };
+      const NFTs = await Moralis.Web3API.account.getNFTs(options);
+
+    let obj = {
+        OtherHoldings: NFTs
+    }
+
+    return obj;
 
 }

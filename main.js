@@ -171,9 +171,11 @@ getData = async function () {
             };
             const balance = await Moralis.Web3API.account.getNativeBalance(options);
             totalLiquidity += parseFloat(balance.balance);
+            let deeperData = await dig(owners[i].owner);
             let totalLiq = (totalLiquidity / 10**18).toFixed(2);
             //document.getElementById('totalLiquidity').innerHTML = "Total Holder Liquidity: " + totalLiq + " ETH | " + "$" + (price * totalLiq).toFixed(2);
-            ol.push({address: owners[i], ethBalance: (parseFloat(balance.balance) / 10**18).toFixed(2)});
+            ol.push({address: owners[i], ethBalance: (parseFloat(balance.balance) / 10**18).toFixed(2), DeeperData: deeperData});
+            console.log(owners.length - i);
         }
 
     const Project = Moralis.Object.extend('Blockchain_Cache');

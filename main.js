@@ -5,14 +5,17 @@ const serverUrl = `https://9lyxfyqintjx.usemoralis.com:2053/server`;
 Moralis.initialize(appId);
 Moralis.start({ serverUrl, appId });
 
-var web3 = new Web3(web3.currentProvider);
+//var web3 = new Web3(web3.currentProvider);
 var user;
 
 
 $(document).ready(function () {
-      
-        $("#search").click(getData);
+    $("#search").click(getData);
 });
+
+login = async function () {
+    await Moralis.Web3.authenticate();
+}
 
 getCachedData = async function () {
      // get eth price     
@@ -83,6 +86,8 @@ getCachedData = async function () {
         }
     }
 }
+
+
 getData = async function () {
 
     // get eth price     
@@ -178,8 +183,8 @@ getData = async function () {
             console.log(owners.length - i);
         }
 
-    const Project = Moralis.Object.extend('Blockchain_Cache');
-    const project = new Project();
+        const Project = Moralis.Object.extend('Blockchain_Cache');
+        const project = new Project();
 
         let sorted = [];
         sorted = ol.sort(function(a,b,){return a.ethBalance - b.ethBalance});
@@ -200,10 +205,11 @@ getData = async function () {
             "HighestHolderLiquidity": {"Address":sorted[0].address.owner, "Liquidity": sorted[0].ethBalance}
         }
         project.set('summary', summary);
-        project.save();
+        await project.save();
         document.getElementById('totalLiquidity').innerHTML = "Holders: " + data[0].attributes.summary.Holders + " | Total Holder Liquidity: " + data[0].attributes.summary.HolderLiquidity + " ETH | " + "$" + data[0].attributes.summary.HolderLiquidityUSD;
         document.getElementById('highestLiquidity').innerHTML = "Highest Holder Liquidity: " + data[0].attributes.summary.HighestHolderLiquidity.Address + " " + data[0].attributes.summary.HighestHolderLiquidity.Liquidity + " ETH";
-    } else {
+    } 
+    else {
         let cursor = null;
         let owners = [];
         let addresses = [];
@@ -235,6 +241,7 @@ getData = async function () {
         console.log(cursor);
         let ol = [];
 
+        //let otherHoldings = [];
         console.log(owners.length);
         let totalLiquidity = 0;
         for(let i = 0; i < owners.length; i++){
@@ -248,32 +255,17 @@ getData = async function () {
             let totalLiq = (totalLiquidity / 10**18).toFixed(2);
             //document.getElementById('totalLiquidity').innerHTML = "Total Holder Liquidity: " + totalLiq + " ETH | " + "$" + (price * totalLiq).toFixed(2);
             ol.push({address: owners[i], ethBalance: (parseFloat(balance.balance) / 10**18).toFixed(2), DeeperData: deeperData});
+            //otherHoldings.push(deeperData);
         }
 
-    const Project = Moralis.Object.extend('Blockchain_Cache');
-    const project = new Project();
+        const Project = Moralis.Object.extend('Blockchain_Cache');
+        const project = new Project();
 
-        let sorted = [];
-        sorted = ol.sort(function(a,b,){return a.ethBalance - b.ethBalance});
-        sorted = ol.reverse();
-
-        project.set('data', sorted);
+        project.set('data', ol);
         project.set('contract_address', address);
-        
+        await project.save(null,{useMasterKey:true});
 
-        console.log(sorted);
-        console.log((totalLiquidity / 10**18).toFixed(2));
-        let totalLiq = (totalLiquidity / 10**18).toFixed(2);
-
-        let summary = {
-            "Holders": sorted.length,
-            "HolderLiquidity": totalLiq,
-            "HolderLiquidityUSD": (price * totalLiq).toFixed(2),
-            "HighestHolderLiquidity": {"Address":sorted[0].address.owner, "Liquidity": sorted[0].ethBalance}
-        }
-        project.set('summary', summary);
-        project.save();
-        getCachedData();
+        //getCachedData();
         //document.getElementById('totalLiquidity').innerHTML = "Holders: " + data[0].attributes.summary.Holders + " | Total Holder Liquidity: " + data[0].attributes.summary.HolderLiquidity + " ETH | " + "$" + data[0].attributes.summary.HolderLiquidityUSD;
         //document.getElementById('highestLiquidity').innerHTML = "Highest Holder Liquidity: " + data[0].attributes.summary.HighestHolderLiquidity.Address + " " + data[0].attributes.summary.HighestHolderLiquidity.Liquidity + " ETH";
     }
@@ -294,4 +286,36 @@ dig = async function (address) {
 
     return obj;
 
+}
+
+getMutualHoldings = async function (contract_address, contract_address_2) {
+    const dataQ = new Moralis.Query('Blockchain_Cache');
+    dataQ.equalTo('contract_address', contract_address);
+    dataQ.descending('createdAt');
+    dataQ.limit(1);
+    const data = await dataQ.find();
+
+    if(data.length == 0) {
+        return 'no data on this contract';
+    }
+
+    let mutualHolders = [];
+    //console.log(data[0].attributes.data[0]);
+    for(let i = 0; i < data.length; i++) {
+        for(let j = 0; j < data[i].attributes.data.length; j++){
+            if(data[i].attributes.data[j].DeeperData !== undefined) {
+                for(let k = 0; k < data[i].attributes.data[j].DeeperData.OtherHoldings.result.length; k++){
+                    //console.log(data[i].attributes.data[j].DeeperData.OtherHoldings.result[k]);
+                    if(contract_address_2.toLowerCase() == data[i].attributes.data[j].DeeperData.OtherHoldings.result[k].token_address){
+                        if(!mutualHolders.includes(data[i].attributes.data[j].address.owner)){
+                            mutualHolders.push(data[i].attributes.data[j].address.owner);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    console.log(`mutual holders`, mutualHolders);
+    return mutualHolders;
 }

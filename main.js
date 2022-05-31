@@ -1,4 +1,3 @@
-
 const appId = `5ATdkOvzAI57Q2ecQ6fmiuxqHOBa8LMU2uLelNCp`;
 const serverUrl = `https://9lyxfyqintjx.usemoralis.com:2053/server`;
 
@@ -11,265 +10,37 @@ var user;
 
 $(document).ready(function () {
     $("#search").click(getData);
+    $("#mutual").click(getMutualHoldings);
+
 });
 
 login = async function () {
     await Moralis.Web3.authenticate();
 }
 
-getCachedData = async function () {
-     // get eth price     
-     const options = {
-        address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-        chain: "eth",
-        exchange: "uniswap-v3",
-    };
-    let price = await Moralis.Web3API.token.getTokenPrice(options);
-    price = price.usdPrice;
-
-    const address = document.getElementById('address').value;
-    document.getElementById('totalLiquidity').innerHTML = "Working . . .";
-
+getCachedData = async function (addr) {
+    const address = addr;
     const dataQ = new Moralis.Query('Blockchain_Cache');
     dataQ.equalTo('contract_address', address);
     dataQ.descending('createdAt');
     const data = await dataQ.find();
-    if(data.length > 0) {
-        console.log(data);
-        document.getElementById('totalLiquidity').innerHTML = "Holders: " + data[0].attributes.summary.Holders + " | Total Holder Liquidity: " + data[0].attributes.summary.HolderLiquidity + " ETH | " + "$" + data[0].attributes.summary.HolderLiquidityUSD;
-        document.getElementById('highestLiquidity').innerHTML = "Highest Holder Liquidity: " + data[0].attributes.summary.HighestHolderLiquidity.Address + " " + data[0].attributes.summary.HighestHolderLiquidity.Liquidity + " ETH";
-    
-        let cursor = null;
-        let owners = [];
-        let addresses = [];
-        do {
-        const response = await Moralis.Web3API.token.getNFTOwners({
-            address: address,
-            chain: "eth",
-            limit: 500,
-            cursor: cursor,
-        });
-        console.log(
-            `Got page ${response.page} of ${Math.ceil(
-            response.total / response.page_size
-            )}, ${response.total} total`
-        );
-        for (const owner of response.result) {
-            if(!addresses.includes(owner.owner_of)){
-                addresses.push(owner.owner_of);
-                owners.push({
-                amount: owner.amount,
-                owner: owner.owner_of,
-                tokenId: owner.token_id,
-                tokenAddress: owner.token_address,
-                });
-            }
-        }
-        cursor = response.cursor;
-        } while (cursor != "" && cursor != null);
-        console.log(cursor);
-        let ol = [];
 
-        console.log(owners.length);
-        let totalLiquidity = 0;
-        for(let i = 0; i < owners.length; i++){
-            const options = {
-            chain: "eth",
-            address: owners[i].owner
-            };
-            const balance = await Moralis.Web3API.account.getNativeBalance(options);
-            totalLiquidity += parseFloat(balance.balance);
-            let deeperData = await dig(owners[i].owner);
-            let totalLiq = (totalLiquidity / 10**18).toFixed(2);
-            //document.getElementById('totalLiquidity').innerHTML = "Total Holder Liquidity: " + totalLiq + " ETH | " + "$" + (price * totalLiq).toFixed(2);
-            ol.push({address: owners[i], ethBalance: (parseFloat(balance.balance) / 10**18).toFixed(2), DeeperData: deeperData});
-        }
-    }
+    document.getElementById('name').innerHTML = data[0].attributes.summary.Name + " (" + data[0].attributes.summary.Symbol + ")";
+    document.getElementById('lowestPrice').innerHTML = "Floor Price: " + data[0].attributes.summary.FloorPrice;
+    document.getElementById('totalLiquidity').innerHTML = "Holders: " + data[0].attributes.summary.Holders;
 }
 
 
 getData = async function () {
+   const address = document.getElementById('address').value.toLowerCase();
+   getCachedData(address);
+   let params = {address: address};
+   let r = await Moralis.Cloud.run('getCollectionData', params);
 
-    // get eth price     
-     const options = {
-        address: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-        chain: "eth",
-        exchange: "uniswap-v3",
-    };
-    let price = await Moralis.Web3API.token.getTokenPrice(options);
-    price = price.usdPrice;
+   getCachedData(address);
 
-    const address = document.getElementById('address').value;
-    const opt = {
-        address: address,
-        days: "1"
-    };
-
-    try{
-        const op = {
-            address: address,
-            chain: "eth",
-          };
-        const metaData = await Moralis.Web3API.token.getNFTMetadata(op);
-        console.log(metaData);
-        document.getElementById('name').innerHTML = "Name: " + metaData.name;
-    } catch {
-        document.getElementById('name').innerHTML = "Metadata not available";
-    }
-    
-    try {
-        const NFTLowestPrice = await Moralis.Web3API.token.getNFTLowestPrice(opt);
-        let lowestPrice = (parseFloat(NFTLowestPrice.price) / 10**18).toFixed(2);
-        document.getElementById('lowestPrice').innerHTML = "Lowest Price: " + lowestPrice + " ETH";
-    } catch {
-        document.getElementById('lowestPrice').innerHTML = "Lowest Price: No listings";
-    }
-
-    document.getElementById('totalLiquidity').innerHTML = "Working . . .";
-
-    const dataQ = new Moralis.Query('Blockchain_Cache');
-    dataQ.equalTo('contract_address', address);
-    dataQ.descending('createdAt');
-    const data = await dataQ.find();
-    if(data.length > 0) {
-        console.log(data);
-        document.getElementById('totalLiquidity').innerHTML = "Holders: " + data[0].attributes.summary.Holders + " | Total Holder Liquidity: " + data[0].attributes.summary.HolderLiquidity + " ETH | " + "$" + data[0].attributes.summary.HolderLiquidityUSD;
-        document.getElementById('highestLiquidity').innerHTML = "Highest Holder Liquidity: " + data[0].attributes.summary.HighestHolderLiquidity.Address + " " + data[0].attributes.summary.HighestHolderLiquidity.Liquidity + " ETH";
-    
-        let cursor = null;
-        let owners = [];
-        let addresses = [];
-        do {
-        const response = await Moralis.Web3API.token.getNFTOwners({
-            address: address,
-            chain: "eth",
-            limit: 500,
-            cursor: cursor,
-        });
-        console.log(
-            `Got page ${response.page} of ${Math.ceil(
-            response.total / response.page_size
-            )}, ${response.total} total`
-        );
-        for (const owner of response.result) {
-            if(!addresses.includes(owner.owner_of)){
-                addresses.push(owner.owner_of);
-                owners.push({
-                amount: owner.amount,
-                owner: owner.owner_of,
-                tokenId: owner.token_id,
-                tokenAddress: owner.token_address,
-                });
-            }
-        }
-        cursor = response.cursor;
-        } while (cursor != "" && cursor != null);
-        console.log(cursor);
-        let ol = [];
-
-        console.log(owners.length);
-        let totalLiquidity = 0;
-        for(let i = 0; i < owners.length; i++){
-            const options = {
-            chain: "eth",
-            address: owners[i].owner
-            };
-            const balance = await Moralis.Web3API.account.getNativeBalance(options);
-            totalLiquidity += parseFloat(balance.balance);
-            let deeperData = await dig(owners[i].owner);
-            let totalLiq = (totalLiquidity / 10**18).toFixed(2);
-            //document.getElementById('totalLiquidity').innerHTML = "Total Holder Liquidity: " + totalLiq + " ETH | " + "$" + (price * totalLiq).toFixed(2);
-            ol.push({address: owners[i], ethBalance: (parseFloat(balance.balance) / 10**18).toFixed(2), DeeperData: deeperData});
-            console.log(owners.length - i);
-        }
-
-        const Project = Moralis.Object.extend('Blockchain_Cache');
-        const project = new Project();
-
-        let sorted = [];
-        sorted = ol.sort(function(a,b,){return a.ethBalance - b.ethBalance});
-        sorted = ol.reverse();
-
-        project.set('data', sorted);
-        project.set('contract_address', address);
-        
-
-        console.log(sorted);
-        console.log((totalLiquidity / 10**18).toFixed(2));
-        let totalLiq = (totalLiquidity / 10**18).toFixed(2);
-
-        let summary = {
-            "Holders": sorted.length,
-            "HolderLiquidity": totalLiq,
-            "HolderLiquidityUSD": (price * totalLiq).toFixed(2),
-            "HighestHolderLiquidity": {"Address":sorted[0].address.owner, "Liquidity": sorted[0].ethBalance}
-        }
-        project.set('summary', summary);
-        await project.save();
-        document.getElementById('totalLiquidity').innerHTML = "Holders: " + data[0].attributes.summary.Holders + " | Total Holder Liquidity: " + data[0].attributes.summary.HolderLiquidity + " ETH | " + "$" + data[0].attributes.summary.HolderLiquidityUSD;
-        document.getElementById('highestLiquidity').innerHTML = "Highest Holder Liquidity: " + data[0].attributes.summary.HighestHolderLiquidity.Address + " " + data[0].attributes.summary.HighestHolderLiquidity.Liquidity + " ETH";
-    } 
-    else {
-        let cursor = null;
-        let owners = [];
-        let addresses = [];
-        do {
-        const response = await Moralis.Web3API.token.getNFTOwners({
-            address: address,
-            chain: "eth",
-            limit: 500,
-            cursor: cursor,
-        });
-        console.log(
-            `Got page ${response.page} of ${Math.ceil(
-            response.total / response.page_size
-            )}, ${response.total} total`
-        );
-        for (const owner of response.result) {
-            if(!addresses.includes(owner.owner_of)){
-                addresses.push(owner.owner_of);
-                owners.push({
-                amount: owner.amount,
-                owner: owner.owner_of,
-                tokenId: owner.token_id,
-                tokenAddress: owner.token_address,
-                });
-            }
-        }
-        cursor = response.cursor;
-        } while (cursor != "" && cursor != null);
-        console.log(cursor);
-        let ol = [];
-
-        //let otherHoldings = [];
-        console.log(owners.length);
-        let totalLiquidity = 0;
-        for(let i = 0; i < owners.length; i++){
-            const options = {
-            chain: "eth",
-            address: owners[i].owner
-            };
-            const balance = await Moralis.Web3API.account.getNativeBalance(options);
-            let deeperData = await dig(owners[i].owner);
-            totalLiquidity += parseFloat(balance.balance);
-            let totalLiq = (totalLiquidity / 10**18).toFixed(2);
-            //document.getElementById('totalLiquidity').innerHTML = "Total Holder Liquidity: " + totalLiq + " ETH | " + "$" + (price * totalLiq).toFixed(2);
-            ol.push({address: owners[i], ethBalance: (parseFloat(balance.balance) / 10**18).toFixed(2), DeeperData: deeperData});
-            //otherHoldings.push(deeperData);
-        }
-
-        const Project = Moralis.Object.extend('Blockchain_Cache');
-        const project = new Project();
-
-        project.set('data', ol);
-        project.set('contract_address', address);
-        await project.save(null,{useMasterKey:true});
-
-        //getCachedData();
-        //document.getElementById('totalLiquidity').innerHTML = "Holders: " + data[0].attributes.summary.Holders + " | Total Holder Liquidity: " + data[0].attributes.summary.HolderLiquidity + " ETH | " + "$" + data[0].attributes.summary.HolderLiquidityUSD;
-        //document.getElementById('highestLiquidity').innerHTML = "Highest Holder Liquidity: " + data[0].attributes.summary.HighestHolderLiquidity.Address + " " + data[0].attributes.summary.HighestHolderLiquidity.Liquidity + " ETH";
-    }
 }
+
 
 dig = async function (address) {
     const addr = address.toLowerCase();
@@ -289,33 +60,55 @@ dig = async function (address) {
 }
 
 getMutualHoldings = async function (contract_address, contract_address_2) {
+    let addr1, addr2;
+    if(contract_address == null || contract_address_2 == null) {
+        addr1 = document.getElementById('address').value.toLowerCase();
+        addr2 = document.getElementById('address2').value.toLowerCase();
+    } else {
+        addr1 = contract_address;
+        addr2 = contract_address_2;
+    }
+
     const dataQ = new Moralis.Query('Blockchain_Cache');
-    dataQ.equalTo('contract_address', contract_address);
+    dataQ.equalTo('contract_address', addr1);
     dataQ.descending('createdAt');
     dataQ.limit(1);
     const data = await dataQ.find();
 
-    if(data.length == 0) {
+    const dataQ2 = new Moralis.Query('Blockchain_Cache');
+    dataQ2.equalTo('contract_address', addr2);
+    dataQ2.descending('createdAt');
+    dataQ2.limit(1);
+    const data2 = await dataQ2.find();
+
+    if(data.length == 0 || data2.length == 0) {
         return 'no data on this contract';
     }
 
     let mutualHolders = [];
-    //console.log(data[0].attributes.data[0]);
-    for(let i = 0; i < data.length; i++) {
-        for(let j = 0; j < data[i].attributes.data.length; j++){
-            if(data[i].attributes.data[j].DeeperData !== undefined) {
-                for(let k = 0; k < data[i].attributes.data[j].DeeperData.OtherHoldings.result.length; k++){
-                    //console.log(data[i].attributes.data[j].DeeperData.OtherHoldings.result[k]);
-                    if(contract_address_2.toLowerCase() == data[i].attributes.data[j].DeeperData.OtherHoldings.result[k].token_address){
-                        if(!mutualHolders.includes(data[i].attributes.data[j].address.owner)){
-                            mutualHolders.push(data[i].attributes.data[j].address.owner);
-                            break;
-                        }
-                    }
+    for(let i = 0; i < data[0].attributes.data.length; i++) {
+        if(!mutualHolders.includes(data[0].attributes.data[i].owner)) {
+            for(let j = 0; j < data2[0].attributes.data.length; j++) {
+                if(data[0].attributes.data[i].owner == data2[0].attributes.data[j].owner) {
+                    mutualHolders.push(data[0].attributes.data[i].owner);
+                    break;
                 }
             }
         }
     }
+    
     console.log(`mutual holders`, mutualHolders);
+    document.getElementById('mutualLen').innerHTML = "Mutual Holders: " + mutualHolders.length;
     return mutualHolders;
+}
+
+getMintRevenue = async function (addr) {
+    const address = addr.toLowerCase();
+    const options = {
+        address: address,
+        chain: "eth",
+      };
+      const nftTransfers = await Moralis.Web3API.token.getContractNFTTransfers(
+        options
+      );
 }

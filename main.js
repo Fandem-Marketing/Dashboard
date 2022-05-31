@@ -26,6 +26,7 @@ getCachedData = async function (addr) {
     const data = await dataQ.find();
 
     document.getElementById('name').innerHTML = data[0].attributes.summary.Name + " (" + data[0].attributes.summary.Symbol + ")";
+    document.getElementById('supply').innerHTML = "Supply: " + data[0].attributes.summary.Supply;
     document.getElementById('lowestPrice').innerHTML = "Floor Price: " + data[0].attributes.summary.FloorPrice;
     document.getElementById('totalLiquidity').innerHTML = "Holders: " + data[0].attributes.summary.Holders;
 }
@@ -33,7 +34,7 @@ getCachedData = async function (addr) {
 
 getData = async function () {
    const address = document.getElementById('address').value.toLowerCase();
-   getCachedData(address);
+   //getCachedData(address);
    let params = {address: address};
    let r = await Moralis.Cloud.run('getCollectionData', params);
 

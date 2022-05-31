@@ -98,7 +98,7 @@ getMutualHoldings = async function (contract_address, contract_address_2) {
     }
     
     console.log(`mutual holders`, mutualHolders);
-    document.getElementById('mutualLen').innerHTML = "Mutual Holders: " + mutualHolders.length;
+    document.getElementById('mutualLen').innerHTML = "Mutual Holders " + "(" + data[0].attributes.summary.Symbol + ") " + "<>" + " (" + data2[0].attributes.summary.Symbol + ") :" + mutualHolders.length;
     return mutualHolders;
 }
 

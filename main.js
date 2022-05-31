@@ -1,3 +1,4 @@
+
 const appId = `5ATdkOvzAI57Q2ecQ6fmiuxqHOBa8LMU2uLelNCp`;
 const serverUrl = `https://9lyxfyqintjx.usemoralis.com:2053/server`;
 
@@ -18,7 +19,7 @@ login = async function () {
     await Moralis.Web3.authenticate();
 }
 
-getCachedData = async function (addr) {
+getCachedData = async function (addr, addr2) {
     const address = addr;
     const dataQ = new Moralis.Query('Blockchain_Cache');
     dataQ.equalTo('contract_address', address);
@@ -29,17 +30,40 @@ getCachedData = async function (addr) {
     document.getElementById('supply').innerHTML = "Supply: " + data[0].attributes.summary.Supply;
     document.getElementById('lowestPrice').innerHTML = "Floor Price: " + data[0].attributes.summary.FloorPrice;
     document.getElementById('totalLiquidity').innerHTML = "Holders: " + data[0].attributes.summary.Holders;
+
+    if(addr2 == undefined){ return; }
+
+    const address2 = addr2;
+    const dataQ2 = new Moralis.Query('Blockchain_Cache');
+    dataQ2.equalTo('contract_address', address2);
+    dataQ2.descending('createdAt');
+    const data2 = await dataQ2.find();
+    
+
+    document.getElementById('name2').innerHTML = "<br/>" + data2[0].attributes.summary.Name + " (" + data2[0].attributes.summary.Symbol + ")";
+    document.getElementById('supply2').innerHTML = "Supply: " + data2[0].attributes.summary.Supply;
+    document.getElementById('lowestPrice2').innerHTML = "Floor Price: " + data2[0].attributes.summary.FloorPrice;
+    document.getElementById('totalLiquidity2').innerHTML = "Holders: " + data2[0].attributes.summary.Holders;
+
+    getMutualHoldings(address, address2);
+
 }
 
 
 getData = async function () {
    const address = document.getElementById('address').value.toLowerCase();
+   const address2 = document.getElementById('address2').value.toLowerCase();
+
+   document.getElementById('name').innerHTML = "Working . . .";
+
+   getCachedData(address, address2);
+
    //getCachedData(address);
    let params = {address: address};
    let r = await Moralis.Cloud.run('getCollectionData', params);
 
-   getCachedData(address);
-
+    params = {address: address2};
+    r = await Moralis.Cloud.run('getCollectionData', params);
 }
 
 
@@ -98,8 +122,7 @@ getMutualHoldings = async function (contract_address, contract_address_2) {
         }
     }
     
-    console.log(`mutual holders`, mutualHolders);
-    document.getElementById('mutualLen').innerHTML = "Mutual Holders " + "(" + data[0].attributes.summary.Symbol + ") " + "<>" + " (" + data2[0].attributes.summary.Symbol + ") :" + mutualHolders.length;
+    document.getElementById('mutualLen').innerHTML = "<br/>" + "Mutual Holders " + "(" + data[0].attributes.summary.Symbol + ") " + "<>" + " (" + data2[0].attributes.summary.Symbol + ") :" + mutualHolders.length;
     return mutualHolders;
 }
 

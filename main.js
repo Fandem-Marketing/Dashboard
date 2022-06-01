@@ -30,6 +30,8 @@ getCachedData = async function (addr, addr2) {
     document.getElementById('supply').innerHTML = "Supply: " + data[0].attributes.summary.Supply;
     document.getElementById('lowestPrice').innerHTML = "Floor Price: " + data[0].attributes.summary.FloorPrice;
     document.getElementById('totalLiquidity').innerHTML = "Holders: " + data[0].attributes.summary.Holders;
+    document.getElementById('secondary').innerHTML = "Secondary TXs: " + data[0].attributes.summary.SecondaryTrades;
+
 
     if(addr2 == undefined){ return; }
 
@@ -43,7 +45,7 @@ getCachedData = async function (addr, addr2) {
     document.getElementById('name2').innerHTML = "<br/>" + data2[0].attributes.summary.Name + " (" + data2[0].attributes.summary.Symbol + ")";
     document.getElementById('supply2').innerHTML = "Supply: " + data2[0].attributes.summary.Supply;
     document.getElementById('lowestPrice2').innerHTML = "Floor Price: " + data2[0].attributes.summary.FloorPrice;
-    document.getElementById('totalLiquidity2').innerHTML = "Holders: " + data2[0].attributes.summary.Holders;
+    document.getElementById('secondary2').innerHTML = "Secondary TXs: " + data2[0].attributes.summary.SecondaryTrades;
 
     getMutualHoldings(address, address2);
 

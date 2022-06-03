@@ -12,7 +12,7 @@ var user;
 $(document).ready(function () {
     $("#search").click(getData);
     $("#mutual").click(getMutualHoldings);
-
+    $("#deep").click(getDeepData);
 });
 
 login = async function () {
@@ -30,7 +30,7 @@ getCachedData = async function (addr, addr2) {
     document.getElementById('supply').innerHTML = "Supply: " + data[0].attributes.summary.Supply;
     document.getElementById('lowestPrice').innerHTML = "Floor Price: " + data[0].attributes.summary.FloorPrice;
     document.getElementById('totalLiquidity').innerHTML = "Holders: " + data[0].attributes.summary.Holders;
-    document.getElementById('secondary').innerHTML = "Secondary TXs: " + data[0].attributes.summary.SecondaryTrades;
+    document.getElementById('secondary').innerHTML = "Secondary Trades: " + data[0].attributes.summary.SecondaryTrades;
 
 
     if(addr2 == undefined){ return; }
@@ -45,27 +45,35 @@ getCachedData = async function (addr, addr2) {
     document.getElementById('name2').innerHTML = "<br/>" + data2[0].attributes.summary.Name + " (" + data2[0].attributes.summary.Symbol + ")";
     document.getElementById('supply2').innerHTML = "Supply: " + data2[0].attributes.summary.Supply;
     document.getElementById('lowestPrice2').innerHTML = "Floor Price: " + data2[0].attributes.summary.FloorPrice;
-    document.getElementById('secondary2').innerHTML = "Secondary TXs: " + data2[0].attributes.summary.SecondaryTrades;
+    document.getElementById('secondary2').innerHTML = "Secondary Trades: " + data2[0].attributes.summary.SecondaryTrades;
 
     getMutualHoldings(address, address2);
 
 }
 
 
-getData = async function () {
-   const address = document.getElementById('address').value.toLowerCase();
-   const address2 = document.getElementById('address2').value.toLowerCase();
+getData = async function (addr) {
+    let address;
+    if(addr !== undefined) {
+        address = addr.toLowerCase();
+    } else {
+        address = document.getElementById('address').value.toLowerCase();
+        const address2 = document.getElementById('address2').value.toLowerCase();
+    }
+
 
    document.getElementById('name').innerHTML = "Working . . .";
 
-   getCachedData(address, address2);
+   //getCachedData(address, address2);
 
    //getCachedData(address);
    let params = {address: address};
    let r = await Moralis.Cloud.run('getCollectionData', params);
 
-    params = {address: address2};
-    r = await Moralis.Cloud.run('getCollectionData', params);
+    // params = {address: address2};
+    // r = await Moralis.Cloud.run('getCollectionData', params);
+
+    return 'gd done';
 }
 
 
@@ -137,4 +145,58 @@ getMintRevenue = async function (addr) {
       const nftTransfers = await Moralis.Web3API.token.getContractNFTTransfers(
         options
       );
+}
+
+getOtherHoldings = async function (addr) {
+    const address = addr.toLowerCase();
+    const dataQ = new Moralis.Query('Blockchain_Cache');
+    dataQ.equalTo('contract_address', address);
+    dataQ.descending('createdAt');
+    dataQ.limit(1);
+    const data = await dataQ.find();
+    if(data.length == 0) {
+        return 'contract not found';
+    }
+    let holderData = data[0].attributes.data;
+    let holders = [];
+    for(let i = 0; i < holderData.length; i++) {
+        if(!holders.includes(holderData[i].owner)) {
+            holders.push(holderData[i].owner);
+        }
+    }
+
+    let otherHoldings = [];
+    for(let i = 0; i < holders.length; i++) {
+        const options = {
+            chain: "eth",
+            address: holders[i],
+        };
+
+        const NFTs = await Moralis.Web3API.account.getNFTs(options);
+        otherHoldings.push({
+            address: holders[i],
+            OtherHoldings: NFTs.result
+        });
+    }
+
+    data[0].set('otherHoldings', otherHoldings);
+    data[0].save();
+
+    console.log(true);
+    return 'goh done';
+}
+
+getDeepData = async function (address) {
+    let addr;
+    // if(address != undefined) {
+    //     addr = address.toLowerCase();
+    // } else {
+        addr = document.getElementById('address').value.toLowerCase();
+    // }
+    let r = await getData(addr);
+    console.log(r);
+    let r2 = await getOtherHoldings(addr);
+    console.log(r2);
+    let r3 = await getCachedData(addr);
+    //console.log(r3);
 }

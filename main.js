@@ -25,6 +25,9 @@ getCachedData = async function (addr, addr2) {
     dataQ.equalTo('contract_address', address);
     dataQ.descending('createdAt');
     const data = await dataQ.find();
+    if(data.length === 0) {
+        return;
+    }
 
     document.getElementById('name').innerHTML = data[0].attributes.summary.Name + " (" + data[0].attributes.summary.Symbol + ")";
     document.getElementById('supply').innerHTML = "Supply: " + data[0].attributes.summary.Supply;

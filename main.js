@@ -55,18 +55,18 @@ getCachedData = async function (addr, addr2) {
 getData = async function (addr) {
     let address;
     if(addr !== undefined) {
-        address = addr.toLowerCase();
-    } else {
+        address = addr;
+    } // else {
         address = document.getElementById('address').value.toLowerCase();
-        const address2 = document.getElementById('address2').value.toLowerCase();
-    }
+        //const address2 = document.getElementById('address2').value.toLowerCase();
+   // }
 
 
    document.getElementById('name').innerHTML = "Working . . .";
 
    //getCachedData(address, address2);
 
-   //getCachedData(address);
+   getCachedData(address);
    let params = {address: address};
    let r = await Moralis.Cloud.run('getCollectionData', params);
 

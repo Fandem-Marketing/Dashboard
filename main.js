@@ -29,11 +29,11 @@ getCachedData = async function (addr, addr2) {
         return;
     }
 
-    document.getElementById('name').innerHTML = data[0].attributes.summary.Name + " (" + data[0].attributes.summary.Symbol + ")";
-    document.getElementById('supply').innerHTML = "Supply: " + data[0].attributes.summary.Supply;
-    document.getElementById('lowestPrice').innerHTML = "Floor Price: " + data[0].attributes.summary.FloorPrice;
-    document.getElementById('totalLiquidity').innerHTML = "Holders: " + data[0].attributes.summary.Holders;
-    document.getElementById('secondary').innerHTML = "Secondary Trades: " + data[0].attributes.summary.SecondaryTrades;
+    document.getElementById('name').innerHTML = data[0].attributes.summary.name + " (" + data[0].attributes.summary.symbol + ")";
+    document.getElementById('supply').innerHTML = "Supply: " + data[0].attributes.summary.supply;
+    document.getElementById('lowestPrice').innerHTML = "Floor Price: " + data[0].attributes.summary.floor_price;
+    document.getElementById('totalLiquidity').innerHTML = "Holders: " + data[0].attributes.summary.holder_wallets;
+    document.getElementById('secondary').innerHTML = "Secondary Trades: " + data[0].attributes.summary.secondary_trades;
 
 
     if(addr2 == undefined){ return; }
@@ -45,10 +45,10 @@ getCachedData = async function (addr, addr2) {
     const data2 = await dataQ2.find();
     
 
-    document.getElementById('name2').innerHTML = "<br/>" + data2[0].attributes.summary.Name + " (" + data2[0].attributes.summary.Symbol + ")";
-    document.getElementById('supply2').innerHTML = "Supply: " + data2[0].attributes.summary.Supply;
-    document.getElementById('lowestPrice2').innerHTML = "Floor Price: " + data2[0].attributes.summary.FloorPrice;
-    document.getElementById('secondary2').innerHTML = "Secondary Trades: " + data2[0].attributes.summary.SecondaryTrades;
+    document.getElementById('name2').innerHTML = "<br/>" + data2[0].attributes.summary.name + " (" + data2[0].attributes.summary.symbol + ")";
+    document.getElementById('supply2').innerHTML = "Supply: " + data2[0].attributes.summary.supply;
+    document.getElementById('lowestPrice2').innerHTML = "Floor Price: " + data2[0].attributes.summary.floor_price;
+    document.getElementById('secondary2').innerHTML = "Secondary Trades: " + data2[0].attributes.summary.secondary_trades;
 
     getMutualHoldings(address, address2);
 
@@ -203,3 +203,34 @@ getDeepData = async function (address) {
     let r3 = await getCachedData(addr);
     //console.log(r3);
 }
+
+// Contract
+// {
+// address: string;
+// 	holder_wallets: string[]; (maps to Wallet)
+// name: string;
+// symbol: string;
+// }
+
+// Wallet
+// {
+// 	address: string;
+// 	projects_owned: string[]; (maps to Contract)
+// 	balance: number;
+// 	transaction_hashes: string[]; (maps to Transaction)
+// }
+
+// Transactions 
+// {
+// 	hash: string;
+// 	to: string;
+// 	from: string;
+// 	value: number;
+// 	timestamp: number;
+// 	events?: {
+// 		name: string;
+// 		token_id: number;
+// 	}
+// }
+
+

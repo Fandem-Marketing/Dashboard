@@ -22,18 +22,19 @@ login = async function () {
 getCachedData = async function (addr, addr2) {
     const address = addr;
     const dataQ = new Moralis.Query('Blockchain_Cache');
-    dataQ.equalTo('contract_address', address);
+    dataQ.equalTo('address', address);
     dataQ.descending('createdAt');
     const data = await dataQ.find();
     if(data.length === 0) {
         return;
     }
 
-    document.getElementById('name').innerHTML = data[0].attributes.summary.name + " (" + data[0].attributes.summary.symbol + ")";
-    document.getElementById('supply').innerHTML = "Supply: " + data[0].attributes.summary.supply;
-    document.getElementById('lowestPrice').innerHTML = "Floor Price: " + data[0].attributes.summary.floor_price;
-    document.getElementById('totalLiquidity').innerHTML = "Holders: " + data[0].attributes.summary.holder_wallets;
-    document.getElementById('secondary').innerHTML = "Secondary Trades: " + data[0].attributes.summary.secondary_trades;
+    console.log(data[0].attributes);
+    document.getElementById('name').innerHTML = data[0].attributes.data.name + " (" + data[0].attributes.data.symbol + ")";
+    document.getElementById('supply').innerHTML = "Supply: " + data[0].attributes.data.supply;
+    document.getElementById('lowestPrice').innerHTML = "Floor Price: " + data[0].attributes.data.floor_price;
+    document.getElementById('totalLiquidity').innerHTML = "Holders: " + data[0].attributes.data.holder_wallets.length;
+    document.getElementById('secondary').innerHTML = "Secondary Trades: " + data[0].attributes.data.secondary_trades;
 
 
     if(addr2 == undefined){ return; }
@@ -45,10 +46,10 @@ getCachedData = async function (addr, addr2) {
     const data2 = await dataQ2.find();
     
 
-    document.getElementById('name2').innerHTML = "<br/>" + data2[0].attributes.summary.name + " (" + data2[0].attributes.summary.symbol + ")";
-    document.getElementById('supply2').innerHTML = "Supply: " + data2[0].attributes.summary.supply;
-    document.getElementById('lowestPrice2').innerHTML = "Floor Price: " + data2[0].attributes.summary.floor_price;
-    document.getElementById('secondary2').innerHTML = "Secondary Trades: " + data2[0].attributes.summary.secondary_trades;
+    document.getElementById('name2').innerHTML = "<br/>" + data2[0].attributes.data.name + " (" + data2[0].attributes.data.symbol + ")";
+    document.getElementById('supply2').innerHTML = "Supply: " + data2[0].attributes.data.supply;
+    document.getElementById('lowestPrice2').innerHTML = "Floor Price: " + data2[0].attributes.data.floor_price;
+    document.getElementById('secondary2').innerHTML = "Secondary Trades: " + data2[0].attributes.data.secondary_trades;
 
     getMutualHoldings(address, address2);
 
@@ -135,7 +136,7 @@ getMutualHoldings = async function (contract_address, contract_address_2) {
         }
     }
     
-    document.getElementById('mutualLen').innerHTML = "<br/>" + "Mutual Holders " + "(" + data[0].attributes.summary.Symbol + ") " + "<>" + " (" + data2[0].attributes.summary.Symbol + ") :" + mutualHolders.length;
+    document.getElementById('mutualLen').innerHTML = "<br/>" + "Mutual Holders " + "(" + data[0].attributes.data.Symbol + ") " + "<>" + " (" + data2[0].attributes.data.Symbol + ") :" + mutualHolders.length;
     return mutualHolders;
 }
 

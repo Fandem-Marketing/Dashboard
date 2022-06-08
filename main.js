@@ -19,6 +19,14 @@ login = async function () {
     await Moralis.Web3.authenticate();
 }
 
+getTxData = async function (txs) {
+    for(let i = 0; i < txs.length; i++) {
+        let params = {hash: txs[i]};
+        let r = await Moralis.Cloud.run('get_tx_data', params);
+        console.log(r);
+    }
+}
+
 getCachedData = async function (addr, addr2) {
     const address = addr;
     const dataQ = new Moralis.Query('Blockchain_Cache');

@@ -213,6 +213,12 @@ getDeepData = async function (address) {
     //console.log(r3);
 }
 
+getWalletData = async function (address) {
+    const params = {address: address};
+    const result = await Moralis.Cloud.run('get_wallet_data', params);
+    console.log('wallet data',result);
+}
+
 // Contract
 // {
 // address: string;

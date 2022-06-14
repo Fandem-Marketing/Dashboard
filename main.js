@@ -219,6 +219,75 @@ getWalletData = async function (address) {
     console.log('wallet data',result);
 }
 
+getContractTransfers = async function (address) {
+    const add = address.toLowerCase();
+    const options = {
+        address: add,
+        chain: "eth",
+    };
+
+    let cursor = null;
+    let transfers = [];
+    do {
+        const nftTransfers = await Moralis.Web3API.token.getContractNFTTransfers({
+            address: add,
+            chain: "eth",
+            limit: 100,
+            cursor: cursor
+        });
+
+        cursor = nftTransfers.cursor;
+
+        for(let i = 0; i < nftTransfers.result.length; i++) {
+            transfers.push(nftTransfers.result[i]);
+        }
+
+    } while(cursor != "" && cursor != null);
+    
+    let mints = [];
+    let uniqueTx = [];
+    let totalMintRevenue = 0;
+    for(let i = 0; i < transfers.length; i++) {
+        if(transfers[i].from_address == '0x0000000000000000000000000000000000000000') {
+            mints.push(transfers[i]);
+        }
+        if(!uniqueTx.includes(transfers[i].transaction_hash) && transfers[i].from_address == '0x0000000000000000000000000000000000000000') {
+            uniqueTx.push(transfers[i]);
+            totalMintRevenue += parseFloat(transfers[i].value);
+        }
+    }
+    const avgMintPrice = totalMintRevenue / transfers.length;
+
+    // let mints = [];
+    // for(let i = 0; i < uniqueTx.length; i++) {
+    //     let params = {
+    //         hash: uniqueTx[i]
+    //     };
+
+    //     let tx = await Moralis.Cloud.run('get_tx_data', params);
+
+    //     console.log(tx);
+    // }
+
+    console.log('avg mint price',(avgMintPrice / 10**18).toFixed(2));
+    console.log('total mint revenue',(totalMintRevenue / 10**18).toFixed(2));
+
+    const q = new Moralis.Query('Blockchain_Cache');
+    q.equalTo('address', add);
+    q.descending('createdAt');
+    q.limit(1);
+    const r = await q.find();
+
+    if(r.length > 0) {
+        r[0].set('avgMintPrice',(avgMintPrice / 10**18).toFixed(2));
+        r[0].set('totalMintRev', (totalMintRevenue / 10**18).toFixed(2));
+        r[0].set('mints', mints);
+        r[0].save();
+    }
+
+    return transfers;
+}
+
 // Contract
 // {
 // address: string;

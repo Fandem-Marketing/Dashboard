@@ -288,6 +288,48 @@ getContractTransfers = async function (address) {
     return transfers;
 }
 
+getSecondaryTxs = async function (address) {
+    let cursor = null;
+    let trades = [];
+    let uniqueTrades = [];
+    let totalVolume = 0;
+    const test_hash = '0xe6009874145ed93e66bb2ba67e41e3ae737849a6ee7fa8d85ac779c8db27b581';
+    do {
+        const NFTTrades = await Moralis.Web3API.token.getNFTTrades( {
+            address: address.toLowerCase(),
+            limit: 100,
+            chain: "eth",
+            from_block: "0",
+            cursor: cursor
+        } );
+        console.log(NFTTrades);
+
+
+        cursor = NFTTrades.cursor;
+
+        for(let i = 0; i < NFTTrades.result.length; i++) {
+            if(NFTTrades.result[i].transaction_hash == test_hash){
+                console.log('here!', NFTTrades.result[i]);
+            }
+            trades.push(NFTTrades.result[i]);
+            totalVolume += parseFloat(NFTTrades.result[i].price);
+            if(!uniqueTrades.includes(NFTTrades.result[i].transaction_hash)){
+                uniqueTrades.push(NFTTrades.result[i].transaction_hash);
+            }
+        }
+
+    } while(cursor != "" && cursor != null);
+
+    const avgPrice = totalVolume / trades.length;
+    
+    console.log('total trades', trades.length);
+    console.log('unique trades', uniqueTrades.length);
+    console.log('avg price', (avgPrice / 10**18).toFixed(2));
+    console.log('total volume', (totalVolume / 10**18).toFixed(2));
+    console.log(trades);
+    return trades;
+}
+
 // Contract
 // {
 // address: string;

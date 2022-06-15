@@ -82,6 +82,7 @@ getData = async function (addr) {
    let params = {address: address};
    let r = await Moralis.Cloud.run('getCollectionData', params);
 
+   getContractTransfers(address);
     // params = {address: address2};
     // r = await Moralis.Cloud.run('getCollectionData', params);
 
@@ -221,6 +222,7 @@ getWalletData = async function (address) {
 
 getContractTransfers = async function (address) {
     const add = address.toLowerCase();
+
     const options = {
         address: add,
         chain: "eth",
@@ -246,6 +248,7 @@ getContractTransfers = async function (address) {
     
     let mints = [];
     let uniqueTx = [];
+    let initialMinters = [];
     let totalMintRevenue = 0;
     for(let i = 0; i < transfers.length; i++) {
         if(transfers[i].from_address == '0x0000000000000000000000000000000000000000') {
@@ -254,6 +257,7 @@ getContractTransfers = async function (address) {
         if(!uniqueTx.includes(transfers[i].transaction_hash) && transfers[i].from_address == '0x0000000000000000000000000000000000000000') {
             uniqueTx.push(transfers[i]);
             totalMintRevenue += parseFloat(transfers[i].value);
+            initialMinters.push(transfers[i].to_address);
         }
     }
     const avgMintPrice = totalMintRevenue / transfers.length;
@@ -282,6 +286,7 @@ getContractTransfers = async function (address) {
         r[0].set('avgMintPrice',(avgMintPrice / 10**18).toFixed(2));
         r[0].set('totalMintRev', (totalMintRevenue / 10**18).toFixed(2));
         r[0].set('mints', mints);
+        r[0].set('initialMinters', initialMinters);
         r[0].save();
     }
 

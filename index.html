@@ -10,7 +10,6 @@
     <script src="https://npmcdn.com/moralis@latest/dist/moralis.js"></script>
     <script src="https://unpkg.com/moralis@latest/dist/moralis.js"></script>
 
-
   </head>
 <body>
   
@@ -39,9 +38,26 @@
 
     <div id="mutualLen"></div>
 
-
-    <script src="main.js"></script>
+    <script src="./abis.js"></script>
+    <script type="module">
+      import { ethers } from "https://cdn.ethers.io/lib/ethers-5.2.esm.min.js";
+      
+    </script>
     <!-- <script src="pullcsv.js"></script> -->
+    <input id="n" placeholder="Name">
+    <input type="text" id="s" placeholder="Symbol">
+    <input type="text" id="max" placeholder="Max Supply">
+    <input type="text" id="uri" placeholder="URI">
+    <input type="text" id="price" placeholder="Public Price (paid only)">
+    <input type="text" id="alprice" placeholder="Allow List Price (paid only)">
+    <select name="contractType" id="ct">
+      <option value="fm">Free Mint</option>
+      <option value="pm">Paid Mint</option>
+    </select>
+    
+
+    <button id="deploy">Deploy</button>
+    <script type="module" src="main.js"></script>
 
 </body>
 

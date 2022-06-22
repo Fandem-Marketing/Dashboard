@@ -1,3 +1,7 @@
+// const { ethers } = require("ethers");
+
+import { Signer } from "https://cdn.ethers.io/lib/ethers-5.2.esm.min.js";
+import { ethers } from "https://cdn.ethers.io/lib/ethers-5.2.esm.min.js";
 
 const appId = `5ATdkOvzAI57Q2ecQ6fmiuxqHOBa8LMU2uLelNCp`;
 const serverUrl = `https://9lyxfyqintjx.usemoralis.com:2053/server`;
@@ -5,21 +9,23 @@ const serverUrl = `https://9lyxfyqintjx.usemoralis.com:2053/server`;
 Moralis.initialize(appId);
 Moralis.start({ serverUrl, appId });
 
-//var web3 = new Web3(web3.currentProvider);
+// var web3 = new Web3(web3.currentProvider);
+// console.log(web3);
 var user;
-
 
 $(document).ready(function () {
     $("#search").click(getData);
     $("#mutual").click(getMutualHoldings);
     $("#deep").click(getDeepData);
+    $("#deploy").click(deploy);
+
 });
 
-login = async function () {
-    await Moralis.Web3.authenticate();
+const login = async function () {
+    user = await Moralis.Web3.authenticate();
 }
 
-getTxData = async function (txs) {
+const getTxData = async function (txs) {
     for(let i = 0; i < txs.length; i++) {
         let params = {hash: txs[i]};
         let r = await Moralis.Cloud.run('get_tx_data', params);
@@ -27,7 +33,7 @@ getTxData = async function (txs) {
     }
 }
 
-getCachedData = async function (addr, addr2) {
+const getCachedData = async function (addr, addr2) {
     const address = addr;
     const dataQ = new Moralis.Query('Blockchain_Cache');
     dataQ.equalTo('address', address);
@@ -64,7 +70,7 @@ getCachedData = async function (addr, addr2) {
 }
 
 
-getData = async function (addr) {
+const getData = async function (addr) {
     let address;
     if(addr !== undefined) {
         address = addr;
@@ -90,7 +96,7 @@ getData = async function (addr) {
 }
 
 
-dig = async function (address) {
+const dig = async function (address) {
     const addr = address.toLowerCase();
 
     const options = {
@@ -107,7 +113,7 @@ dig = async function (address) {
 
 }
 
-getMutualHoldings = async function (contract_address, contract_address_2) {
+const getMutualHoldings = async function (contract_address, contract_address_2) {
     let addr1, addr2;
     if(contract_address == null || contract_address_2 == null) {
         addr1 = document.getElementById('address').value.toLowerCase();
@@ -149,7 +155,7 @@ getMutualHoldings = async function (contract_address, contract_address_2) {
     return mutualHolders;
 }
 
-getMintRevenue = async function (addr) {
+const getMintRevenue = async function (addr) {
     const address = addr.toLowerCase();
     const options = {
         address: address,
@@ -160,7 +166,7 @@ getMintRevenue = async function (addr) {
       );
 }
 
-getOtherHoldings = async function (addr) {
+const getOtherHoldings = async function (addr) {
     const address = addr.toLowerCase();
     const dataQ = new Moralis.Query('Blockchain_Cache');
     dataQ.equalTo('contract_address', address);
@@ -199,7 +205,7 @@ getOtherHoldings = async function (addr) {
     return 'goh done';
 }
 
-getDeepData = async function (address) {
+const getDeepData = async function (address) {
     let addr;
     // if(address != undefined) {
     //     addr = address.toLowerCase();
@@ -214,13 +220,13 @@ getDeepData = async function (address) {
     //console.log(r3);
 }
 
-getWalletData = async function (address) {
+const getWalletData = async function (address) {
     const params = {address: address};
     const result = await Moralis.Cloud.run('get_wallet_data', params);
     console.log('wallet data',result);
 }
 
-getContractTransfers = async function (address) {
+const getContractTransfers = async function (address) {
     const add = address.toLowerCase();
 
     const options = {
@@ -293,7 +299,7 @@ getContractTransfers = async function (address) {
     return transfers;
 }
 
-getSecondaryTxs = async function (address) {
+const getSecondaryTxs = async function (address) {
     let cursor = null;
     let trades = [];
     let uniqueTrades = [];
@@ -335,6 +341,50 @@ getSecondaryTxs = async function (address) {
     return trades;
 }
 
+
+async function deploy() {
+    let contract = document.getElementById('ct').value;
+    let name = document.getElementById('n').value;
+    console.log(name);
+    let symbol = document.getElementById('s').value;
+    let supply = document.getElementById('max').value;
+    let uri = document.getElementById('uri').value;
+    console.log(contract);
+    const provider = new ethers.providers.Web3Provider(window.ethereum)
+    await provider.send("eth_requestAccounts", []);
+    const signer = provider.getSigner()
+
+
+    let abi, bc, factory, deployment;
+    if(contract == 'fm') {
+        abi = FreeMint;
+        bc = FreeByteCode;
+        factory = new ethers.ContractFactory(FreeMint, FreeByteCode, signer);
+        deployment = await factory.deploy(name, symbol, supply, uri);
+    } else if (contract == 'pm') {
+        let price = document.getElementById('price').value;
+        let alprice = document.getElementById('alprice').value;
+
+        if(parseFloat(price) < parseFloat(alprice)) {
+            alert('Allow list price is higher than public price. This is not recommended.');
+        }
+        price = parseFloat(price) * 10**18;
+        alprice = parseFloat(alprice) * 10**18;
+
+        price = price.toString();
+        alprice = alprice.toString();
+        console.log('price', price);
+        console.log('alprice', alprice);
+
+        abi = PaidABI;
+        bc = PaidByteCode;
+        factory = new ethers.ContractFactory(abi, bc, signer);
+        deployment = await factory.deploy(name, symbol, price, alprice, supply, uri);
+    }
+}
+
+
+// deploy();
 // Contract
 // {
 // address: string;

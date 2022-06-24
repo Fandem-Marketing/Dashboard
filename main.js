@@ -18,8 +18,23 @@ $(document).ready(function () {
     $("#mutual").click(getMutualHoldings);
     $("#deep").click(getDeepData);
     $("#deploy").click(deploy);
+    $("#execute").click(execute);
 
 });
+
+ async function execute () {
+    const provider = new ethers.providers.Web3Provider(window.ethereum)
+    await provider.send("eth_requestAccounts", []);
+    const signer = provider.getSigner();
+    const contract = new ethers.Contract('0x366e3b64ef9060eb4b2b0908d7cd165c26312a23', FreeMint , signer );
+    const func = document.getElementById('function').value;
+    if(func == 'flipAL') {
+        contract.flipALState();
+    }
+    if(func == 'flipSale') {
+        contract.flipSaleState();
+    }
+}
 
 const login = async function () {
     user = await Moralis.Web3.authenticate();
@@ -345,14 +360,15 @@ const getSecondaryTxs = async function (address) {
 async function deploy() {
     let contract = document.getElementById('ct').value;
     let name = document.getElementById('n').value;
-    console.log(name);
+    // console.log(name);
     let symbol = document.getElementById('s').value;
     let supply = document.getElementById('max').value;
     let uri = document.getElementById('uri').value;
-    console.log(contract);
+    // console.log(contract);
     const provider = new ethers.providers.Web3Provider(window.ethereum)
     await provider.send("eth_requestAccounts", []);
-    const signer = provider.getSigner()
+    const signer = provider.getSigner();
+    console.log(signer);
 
 
     let abi, bc, factory, deployment;
@@ -361,6 +377,7 @@ async function deploy() {
         bc = FreeByteCode;
         factory = new ethers.ContractFactory(FreeMint, FreeByteCode, signer);
         deployment = await factory.deploy(name, symbol, supply, uri);
+        //console.log(deployment);
     } else if (contract == 'pm') {
         let price = document.getElementById('price').value;
         let alprice = document.getElementById('alprice').value;
@@ -381,6 +398,12 @@ async function deploy() {
         factory = new ethers.ContractFactory(abi, bc, signer);
         deployment = await factory.deploy(name, symbol, price, alprice, supply, uri);
     }
+
+    const Project = Moralis.Object.extend('DeployedContracts');
+    const proj = new Project();
+    proj.set('owner', deployment.deployTransaction.from.toLowerCase());
+    proj.set('address', deployment.address.toLowerCase());
+    proj.save();
 }
 
 

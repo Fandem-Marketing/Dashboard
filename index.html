@@ -65,6 +65,43 @@
     <button id="deploy">Deploy</button>
     <script type="module" src="main.js"></script>
 
+    <select name="Function" id="function">
+      <option value="flipSale">Flip Sale State</option>
+      <option value="flipAL">Flip Allow List State</option>
+    </select>
+    <button id="execute">Execute Function</button>
+    
+
+  <script src="./credentials.js"></script>
+
+  <!-- <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.8.2/firebase-app.js";
+  import { getFirestore, doc } from 'https://www.gstatic.com/firebasejs/9.8.2/firebase-firestore.js';
+  // const path = require('path');
+  // path.join(__dirname, 'credentials.js');
+  // import { initializeApp, cert } from 'firebase-admin';
+  // import { getFirestore } from 'firebase-admin';
+
+  // export default async function handler() {
+  
+
+  initializeApp(credentials);
+  
+  const db = getFirestore();
+  console.log(db);
+  
+  //const doc_ref = await db.doc('users/0xF7415819Ac171bb483edc2666fA7A60B2aE7ce4B');
+  //var doc_snap = await doc.get()
+  console.log(doc_snap);
+  // const doc = await doc_ref.get();
+
+  // const data = doc.data();
+
+  // console.log(`data`, data);
+  
+  // res.json(data);
+
+  </script> -->
 </body>
 
 </html>

@@ -9,6 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "firebase": "^9.8.3",
+    "firebase-admin": "^11.0.0",
     "moralis": "^1.7.0"
   },
   "devDependencies": {

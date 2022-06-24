@@ -3,6 +3,8 @@ node_modules
 coverage
 coverage.json
 typechain
+credentials.js
+dist
 
 #Hardhat files
 cache

@@ -184,22 +184,23 @@ const getMintRevenue = async function (addr) {
 const getOtherHoldings = async function (addr) {
     const address = addr.toLowerCase();
     const dataQ = new Moralis.Query('Blockchain_Cache');
-    dataQ.equalTo('contract_address', address);
+    dataQ.equalTo('address', address);
     dataQ.descending('createdAt');
     dataQ.limit(1);
     const data = await dataQ.find();
-    if(data.length == 0) {
+    if(data.length === 0) {
         return 'contract not found';
     }
-    let holderData = data[0].attributes.data;
+    let holderData = data[0].attributes.data.holder_wallets;
     let holders = [];
     for(let i = 0; i < holderData.length; i++) {
         if(!holders.includes(holderData[i].owner)) {
-            holders.push(holderData[i].owner);
+            holders.push(holderData[i]);
         }
     }
 
     let otherHoldings = [];
+    console.log(holders.length);
     for(let i = 0; i < holders.length; i++) {
         const options = {
             chain: "eth",
@@ -225,7 +226,7 @@ const getDeepData = async function (address) {
     // if(address != undefined) {
     //     addr = address.toLowerCase();
     // } else {
-        addr = document.getElementById('address').value.toLowerCase();
+        addr = document.getElementById('address').value;
     // }
     let r = await getData(addr);
     console.log(r);

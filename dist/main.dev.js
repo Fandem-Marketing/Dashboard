@@ -364,7 +364,7 @@ var getOtherHoldings = function getOtherHoldings(addr) {
         case 0:
           address = addr.toLowerCase();
           dataQ = new Moralis.Query('Blockchain_Cache');
-          dataQ.equalTo('contract_address', address);
+          dataQ.equalTo('address', address);
           dataQ.descending('createdAt');
           dataQ.limit(1);
           _context9.next = 7;
@@ -373,7 +373,7 @@ var getOtherHoldings = function getOtherHoldings(addr) {
         case 7:
           data = _context9.sent;
 
-          if (!(data.length == 0)) {
+          if (!(data.length === 0)) {
             _context9.next = 10;
             break;
           }
@@ -381,21 +381,22 @@ var getOtherHoldings = function getOtherHoldings(addr) {
           return _context9.abrupt("return", 'contract not found');
 
         case 10:
-          holderData = data[0].attributes.data;
+          holderData = data[0].attributes.data.holder_wallets;
           holders = [];
 
           for (i = 0; i < holderData.length; i++) {
             if (!holders.includes(holderData[i].owner)) {
-              holders.push(holderData[i].owner);
+              holders.push(holderData[i]);
             }
           }
 
           otherHoldings = [];
+          console.log(holders.length);
           _i = 0;
 
-        case 15:
+        case 16:
           if (!(_i < holders.length)) {
-            _context9.next = 24;
+            _context9.next = 25;
             break;
           }
 
@@ -403,28 +404,28 @@ var getOtherHoldings = function getOtherHoldings(addr) {
             chain: "eth",
             address: holders[_i]
           };
-          _context9.next = 19;
+          _context9.next = 20;
           return regeneratorRuntime.awrap(Moralis.Web3API.account.getNFTs(options));
 
-        case 19:
+        case 20:
           NFTs = _context9.sent;
           otherHoldings.push({
             address: holders[_i],
             OtherHoldings: NFTs.result
           });
 
-        case 21:
+        case 22:
           _i++;
-          _context9.next = 15;
+          _context9.next = 16;
           break;
 
-        case 24:
+        case 25:
           data[0].set('otherHoldings', otherHoldings);
           data[0].save();
           console.log(true);
           return _context9.abrupt("return", 'goh done');
 
-        case 28:
+        case 29:
         case "end":
           return _context9.stop();
       }
@@ -441,7 +442,7 @@ var getDeepData = function getDeepData(address) {
           // if(address != undefined) {
           //     addr = address.toLowerCase();
           // } else {
-          addr = document.getElementById('address').value.toLowerCase(); // }
+          addr = document.getElementById('address').value; // }
 
           _context10.next = 3;
           return regeneratorRuntime.awrap(getData(addr));
